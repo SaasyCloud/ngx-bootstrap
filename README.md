@@ -4,18 +4,13 @@ This package is a fork of [ngx-bootstrap](https://valor-software.com/ngx-bootstr
 
 For the most stable version please use the official release of [ngx-bootstrap](https://www.npmjs.com/package/ngx-bootstrap).
 
-Updated documentation can be found in our [repo.](https://github.com/SaasyCloud/ngx-bootstrap/tree/sc-development)
+Updated documentation can be found in our [repo.](https://github.com/SaasyCloud/ngx-bootstrap/)
 
 
 ## Additional features
 1. Datepicker - Apply and Cancel buttons [PR](https://github.com/valor-software/ngx-bootstrap/pull/6638)
 
-<br/>
-<br/>
-
 _________________________
-
-
 
 <a href="http://valor-software.com/ngx-bootstrap/#/">
 <div align="center">
