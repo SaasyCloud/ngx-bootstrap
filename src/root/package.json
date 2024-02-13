@@ -1,7 +1,7 @@
 {
-  "name": "ngx-bootstrap",
-  "version": "12.0.0",
-  "description": "Angular Bootstrap",
+  "name": "@saasycloud/ngx-bootstrap",
+  "version": "12.0.3",
+  "description": "Fork of ngx-bootstrap",
   "author": "Dmitriy Shekhovtsov <valorkin@gmail.com>",
   "license": "MIT",
   "schematics": "./schematics/collection.json",
@@ -171,12 +171,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/valor-software/ngx-bootstrap.git"
+    "url": "git+ssh://git@github.com/saasycloud/ngx-bootstrap.git"
   },
   "bugs": {
-    "url": "https://github.com/valor-software/ngx-bootstrap/issues"
+    "url": "https://github.com/saasycloud/ngx-bootstrap/issues"
   },
-  "homepage": "https://github.com/valor-software/ngx-bootstrap#readme",
+  "homepage": "https://github.com/saasycloud/ngx-bootstrap#readme",
   "keywords": [
     "angular",
     "bootstap",

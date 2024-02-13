@@ -1,17 +1,17 @@
 {
   "name": "ngx-bootstrap-base",
-  "version": "12.0.0",
+  "version": "12.0.3",
   "license": "MIT",
   "author": "Dmitriy Shekhovtsov <valorkin@gmail.com>",
   "schematics": "./schematics/src/collection.json",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/valor-software/ngx-bootstrap.git"
+    "url": "git+ssh://git@github.com/saasycloud/ngx-bootstrap.git"
   },
   "bugs": {
-    "url": "https://github.com/valor-software/ngx-bootstrap/issues"
+    "url": "https://github.com/saasycloud/ngx-bootstrap/issues"
   },
-  "homepage": "https://github.com/valor-software/ngx-bootstrap#readme",
+  "homepage": "https://github.com/saasycloud/ngx-bootstrap#readme",
   "scripts": {
     "ng": "nx",
     "postinstall": "node ./decorate-angular-cli.js",

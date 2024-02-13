@@ -556,7 +556,7 @@ export const ngdoc: any = {
         name: 'applyPosition',
         defaultValue: 'right',
         type: 'string',
-        description: '<p>Positioning of &#39;apply&#39; buttons</p>\n'
+        description: '<p>Positioning of &#39;apply&#39; button</p>\n'
       },
       {
         name: 'cancelButtonLabel',
@@ -719,7 +719,7 @@ export const ngdoc: any = {
         name: 'showCancelButton',
         defaultValue: 'true',
         type: 'boolean',
-        description: '<p>Shows &#39;cancel&#39; button (only if showApplyButton is also true)</p>\n'
+        description: '<p>Shows &#39;cancel&#39; button this is only if showApplyButton is also true</p>\n'
       },
       {
         name: 'showClearButton',
