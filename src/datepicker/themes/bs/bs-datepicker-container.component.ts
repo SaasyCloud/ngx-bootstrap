@@ -42,6 +42,7 @@ export class BsDatepickerContainerComponent
   implements OnInit, AfterViewInit, OnDestroy
 {
   valueChange: EventEmitter<Date> = new EventEmitter<Date>();
+  timeValueChange: EventEmitter<Date> = new EventEmitter<Date>();
   valueApplied: Subject<void> = new Subject();
   valueCancelled: Subject<void> = new Subject();
   animationState = 'void';
@@ -51,6 +52,10 @@ export class BsDatepickerContainerComponent
   @ViewChild('startTP') startTimepicker?: TimepickerComponent;
 
   set value(value: Date | undefined) {
+    this._effects?.setValue(value);
+  }
+
+  set timeValue(value: Date | undefined) {
     this._effects?.setValue(value);
   }
 
@@ -151,7 +156,7 @@ export class BsDatepickerContainerComponent
             return;
           }
 
-          this.valueChange.emit(time[0]);
+          this.timeValueChange.emit(time[0]);
         })
     );
 

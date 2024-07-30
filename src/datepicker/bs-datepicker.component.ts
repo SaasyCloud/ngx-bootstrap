@@ -3,7 +3,8 @@ import {
   ComponentRef,
   Directive,
   ElementRef,
-  EventEmitter, HostBinding,
+  EventEmitter,
+  HostBinding,
   Input,
   OnChanges,
   OnDestroy,
@@ -19,7 +20,7 @@ import { filter, takeUntil } from 'rxjs/operators';
 import { BsDatepickerConfig } from './bs-datepicker.config';
 import { BsDatepickerViewMode, DatepickerDateCustomClasses, DatepickerDateTooltipText } from './models';
 import { BsDatepickerContainerComponent } from './themes/bs/bs-datepicker-container.component';
-import { copyTime } from './utils/copy-time-utils';
+import { copyTime, mergeDateAndTime } from './utils/copy-time-utils';
 import { checkBsValue, setCurrentTimeOnDateSelect } from './utils/bs-calendar-utils';
 
 export let previousDate: Date | Date[] | undefined;
@@ -99,7 +100,7 @@ export class BsDatepickerDirective implements OnInit, OnDestroy, OnChanges, Afte
    */
   @Output() bsValueChange: EventEmitter<Date> = new EventEmitter();
 
-  @HostBinding ('attr.readonly') get readonlyValue () {
+  @HostBinding('attr.readonly') get readonlyValue() {
     return this.isDisabled ? '' : null;
   }
 
@@ -110,18 +111,16 @@ export class BsDatepickerDirective implements OnInit, OnDestroy, OnChanges, Afte
   private _externalValue?: Date;
   private _unappliedValue?: Date;
 
-  constructor(public _config: BsDatepickerConfig,
-              private  _elementRef: ElementRef,
-              private  _renderer: Renderer2,
-              _viewContainerRef: ViewContainerRef,
-              cis: ComponentLoaderFactory) {
+  constructor(
+    public _config: BsDatepickerConfig,
+    private _elementRef: ElementRef,
+    private _renderer: Renderer2,
+    _viewContainerRef: ViewContainerRef,
+    cis: ComponentLoaderFactory
+  ) {
     // todo: assign only subset of fields
     Object.assign(this, this._config);
-    this._datepicker = cis.createLoader<BsDatepickerContainerComponent>(
-      _elementRef,
-      _viewContainerRef,
-      _renderer
-    );
+    this._datepicker = cis.createLoader<BsDatepickerContainerComponent>(_elementRef, _viewContainerRef, _renderer);
     this.onShown = this._datepicker.onShown;
     this.onHidden = this._datepicker.onHidden;
     this.isOpen$ = new BehaviorSubject(this.isOpen);
@@ -190,8 +189,12 @@ export class BsDatepickerDirective implements OnInit, OnDestroy, OnChanges, Afte
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes["bsConfig"]) {
-      if (changes["bsConfig"].currentValue?.initCurrentTime && changes["bsConfig"].currentValue?.initCurrentTime !== changes["bsConfig"].previousValue?.initCurrentTime && this._bsValue) {
+    if (changes['bsConfig']) {
+      if (
+        changes['bsConfig'].currentValue?.initCurrentTime &&
+        changes['bsConfig'].currentValue?.initCurrentTime !== changes['bsConfig'].previousValue?.initCurrentTime &&
+        this._bsValue
+      ) {
         this.initPreviousValue();
         this._bsValue = setCurrentTimeOnDateSelect(this._bsValue);
         this.bsValueChange.emit(this._bsValue);
@@ -205,35 +208,35 @@ export class BsDatepickerDirective implements OnInit, OnDestroy, OnChanges, Afte
       return;
     }
 
-    if (changes["minDate"]) {
+    if (changes['minDate']) {
       this._datepickerRef.instance.minDate = this.minDate;
     }
 
-    if (changes["maxDate"]) {
+    if (changes['maxDate']) {
       this._datepickerRef.instance.maxDate = this.maxDate;
     }
 
-    if (changes["daysDisabled"]) {
+    if (changes['daysDisabled']) {
       this._datepickerRef.instance.daysDisabled = this.daysDisabled;
     }
 
-    if (changes["datesDisabled"]) {
+    if (changes['datesDisabled']) {
       this._datepickerRef.instance.datesDisabled = this.datesDisabled;
     }
 
-    if (changes["datesEnabled"]) {
+    if (changes['datesEnabled']) {
       this._datepickerRef.instance.datesEnabled = this.datesEnabled;
     }
 
-    if (changes["isDisabled"]) {
+    if (changes['isDisabled']) {
       this._datepickerRef.instance.isDisabled = this.isDisabled;
     }
 
-    if (changes["dateCustomClasses"]) {
+    if (changes['dateCustomClasses']) {
       this._datepickerRef.instance.dateCustomClasses = this.dateCustomClasses;
     }
 
-    if (changes["dateTooltipTexts"]) {
+    if (changes['dateTooltipTexts']) {
       this._datepickerRef.instance.dateTooltipTexts = this.dateTooltipTexts;
     }
   }
@@ -251,8 +254,7 @@ export class BsDatepickerDirective implements OnInit, OnDestroy, OnChanges, Afte
 
     // if date changes from picker (view -> model)
     if (this._datepickerRef) {
-
-      if(!this.bsConfig?.showApplyButton){
+      if (!this.bsConfig?.showApplyButton) {
         this._subs.push(
           this._datepickerRef.instance.valueChange.subscribe((value: Date) => {
             this.initPreviousValue();
@@ -264,21 +266,43 @@ export class BsDatepickerDirective implements OnInit, OnDestroy, OnChanges, Afte
             this.hide();
           })
         );
+
+        if (this._config.withTimepicker) {
+          this._subs.push(
+            this._datepickerRef.instance.timeValueChange.subscribe((value: Date) => {
+              this.initPreviousValue();
+              this.bsValue = value;
+              if (this.keepDatepickerModalOpened()) {
+                return;
+              }
+
+              this.hide();
+            })
+          );
+        }
       }
-      
+
       // if apply button is shown update unappliedValue
-      if(this.bsConfig?.showApplyButton){
+      if (this.bsConfig?.showApplyButton) {
         this._subs.push(
           this._datepickerRef.instance.valueChange.subscribe((value: Date) => {
-            this._unappliedValue = value;
+            this._unappliedValue = mergeDateAndTime(value, this._unappliedValue);
           })
         );
+
+        if (this._config.withTimepicker) {
+          this._subs.push(
+            this._datepickerRef.instance.timeValueChange.subscribe((value: Date) => {
+              this._unappliedValue = mergeDateAndTime(this._unappliedValue, value);
+            })
+          );
+        }
 
         // if apply button is pressed update external source (view -> model)
         this._subs.push(
           this._datepickerRef.instance.valueApplied.subscribe(() => {
             this.bsValue = this._unappliedValue;
-            
+
             this.hide();
           })
         );
@@ -288,8 +312,8 @@ export class BsDatepickerDirective implements OnInit, OnDestroy, OnChanges, Afte
           this._datepickerRef.instance.valueCancelled.subscribe(() => {
             if (this._datepickerRef) {
               this._datepickerRef.instance.value = this._externalValue;
-            }          
-              
+            }
+
             this.hide();
           })
         );
@@ -297,8 +321,8 @@ export class BsDatepickerDirective implements OnInit, OnDestroy, OnChanges, Afte
     }
   }
 
+ 
   keepDatepickerModalOpened(): boolean {
-
     if (!previousDate || !this.bsConfig?.keepDatepickerOpened || !this._config.withTimepicker) {
       return false;
     }
@@ -307,17 +331,20 @@ export class BsDatepickerDirective implements OnInit, OnDestroy, OnChanges, Afte
   }
 
   isDateSame(): boolean {
-    return (previousDate instanceof Date
-      && (this._bsValue?.getDate() === previousDate?.getDate())
-      && (this._bsValue?.getMonth() === previousDate?.getMonth())
-      && (this._bsValue?.getFullYear() === previousDate?.getFullYear()));
+    return (
+      previousDate instanceof Date &&
+      this._bsValue?.getDate() === previousDate?.getDate() &&
+      this._bsValue?.getMonth() === previousDate?.getMonth() &&
+      this._bsValue?.getFullYear() === previousDate?.getFullYear()
+    );
   }
 
   ngAfterViewInit(): void {
-    this.isOpen$.pipe(
-      filter(isOpen => isOpen !== this.isOpen),
-      takeUntil(this.isDestroy$)
-    )
+    this.isOpen$
+      .pipe(
+        filter((isOpen) => isOpen !== this.isOpen),
+        takeUntil(this.isDestroy$)
+      )
       .subscribe(() => this.toggle());
   }
 
@@ -376,16 +403,18 @@ export class BsDatepickerDirective implements OnInit, OnDestroy, OnChanges, Afte
    */
   setConfig(): void {
     this._config = Object.assign({}, this._config, this.bsConfig, {
-      value: this._config.keepDatesOutOfRules ? this._bsValue : checkBsValue(this._bsValue, this.maxDate || this.bsConfig && this.bsConfig.maxDate),
+      value: this._config.keepDatesOutOfRules
+        ? this._bsValue
+        : checkBsValue(this._bsValue, this.maxDate || (this.bsConfig && this.bsConfig.maxDate)),
       isDisabled: this.isDisabled,
-      minDate: this.minDate || this.bsConfig && this.bsConfig.minDate,
-      maxDate: this.maxDate || this.bsConfig && this.bsConfig.maxDate,
-      daysDisabled: this.daysDisabled || this.bsConfig && this.bsConfig.daysDisabled,
-      dateCustomClasses: this.dateCustomClasses || this.bsConfig && this.bsConfig.dateCustomClasses,
-      dateTooltipTexts: this.dateTooltipTexts || this.bsConfig && this.bsConfig.dateTooltipTexts,
-      datesDisabled: this.datesDisabled || this.bsConfig && this.bsConfig.datesDisabled,
-      datesEnabled: this.datesEnabled || this.bsConfig && this.bsConfig.datesEnabled,
-      minMode: this.minMode || this.bsConfig && this.bsConfig.minMode,
+      minDate: this.minDate || (this.bsConfig && this.bsConfig.minDate),
+      maxDate: this.maxDate || (this.bsConfig && this.bsConfig.maxDate),
+      daysDisabled: this.daysDisabled || (this.bsConfig && this.bsConfig.daysDisabled),
+      dateCustomClasses: this.dateCustomClasses || (this.bsConfig && this.bsConfig.dateCustomClasses),
+      dateTooltipTexts: this.dateTooltipTexts || (this.bsConfig && this.bsConfig.dateTooltipTexts),
+      datesDisabled: this.datesDisabled || (this.bsConfig && this.bsConfig.datesDisabled),
+      datesEnabled: this.datesEnabled || (this.bsConfig && this.bsConfig.datesEnabled),
+      minMode: this.minMode || (this.bsConfig && this.bsConfig.minMode),
       initCurrentTime: this.bsConfig?.initCurrentTime,
       keepDatepickerOpened: this.bsConfig?.keepDatepickerOpened,
       keepDatesOutOfRules: this.bsConfig?.keepDatesOutOfRules
@@ -394,7 +423,7 @@ export class BsDatepickerDirective implements OnInit, OnDestroy, OnChanges, Afte
 
   unsubscribeSubscriptions() {
     if (this._subs?.length) {
-      this._subs.map(sub => sub.unsubscribe());
+      this._subs.map((sub) => sub.unsubscribe());
       this._subs.length = 0;
     }
   }
